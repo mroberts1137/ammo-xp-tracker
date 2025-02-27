@@ -15,17 +15,25 @@ public class AmmoXpTrackerPanel extends PluginPanel {
     private final AmmoXpTrackerPlugin plugin;
 
     private JLabel statusLabel;
-    private JLabel ammoTypeLabel = new JLabel();
-    private JLabel ammoUsedLabel = new JLabel();
-    private JLabel totalXpGainedLabel = new JLabel();
-    private JLabel avgXpPerAmmoLabel = new JLabel();
+    private JLabel ammoTypeLabel;
+    private JLabel ammoUsedLabel;
+    private JLabel totalXpGainedLabel;
+    private JLabel avgXpPerAmmoLabel;
     private JButton trackButton;
     private JButton resetButton;
+
+    private JTextArea debugTextArea;
+    private JScrollPane debugScrollPane;
 
     private final DecimalFormat formatter = new DecimalFormat("#,###.##");
 
     public AmmoXpTrackerPanel(AmmoXpTrackerPlugin plugin) {
         this.plugin = plugin;
+
+        debugTextArea = new JTextArea(10, 30);
+        debugTextArea.setEditable(false);
+        debugScrollPane = new JScrollPane(debugTextArea);
+        debugScrollPane.setBorder(BorderFactory.createTitledBorder("Debug Log"));
 
         setBorder(new EmptyBorder(10, 10, 10, 10));
         setLayout(new BorderLayout());
@@ -67,11 +75,10 @@ public class AmmoXpTrackerPanel extends PluginPanel {
         trackButton.addActionListener(e -> {
             if (!plugin.isTracking()) {
                 plugin.startTracking();
-                trackButton.setText("Stop Tracking");
             } else {
                 plugin.resetTracking();
-                trackButton.setText("Start Tracking");
             }
+            trackButton.setText(plugin.isTracking() ? "Stop Tracking" : "Start Tracking");
             update();
         });
 
@@ -93,6 +100,8 @@ public class AmmoXpTrackerPanel extends PluginPanel {
 
         add(centerPanel, BorderLayout.NORTH);
         add(buttonPanel, BorderLayout.SOUTH);
+
+        add(debugScrollPane, BorderLayout.CENTER);
     }
 
     public void update() {
@@ -111,6 +120,14 @@ public class AmmoXpTrackerPanel extends PluginPanel {
             ammoUsedLabel.setText("Ammo used: " + formatter.format(plugin.getAmmoUsed()));
             totalXpGainedLabel.setText("XP gained: " + formatter.format(plugin.getTotalXpGained()));
             avgXpPerAmmoLabel.setText("Avg XP per ammo: " + formatter.format(plugin.getAvgXpPerAmmo()));
+        });
+    }
+
+    public void logDebug(String message) {
+        SwingUtilities.invokeLater(() -> {
+            debugTextArea.append(message + "\n");
+            // Auto-scroll to bottom
+            debugTextArea.setCaretPosition(debugTextArea.getDocument().getLength());
         });
     }
 }
